@@ -1,0 +1,46 @@
+# Global .gitignore for project root
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Build output
+/dist/
+/dist-ssr/
+*.local
+
+# Logs
+logs/
+*.log
+
+# Environment files
+.env
+.env.*
+
+# Database
+*.sqlite
+*.db
+/database/migrations/*.sql
+/database/seeds/*.sql
+
+# Editor
+.vscode/
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+Thumbs.db
+
+# Docker
+*.pid
+docker-compose.override.yml
