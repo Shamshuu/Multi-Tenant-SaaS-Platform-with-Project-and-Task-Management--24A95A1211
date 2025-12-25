@@ -14,4 +14,4 @@ EXPOSE 5000
 
 # Run migrations + seeds, then start server
 # CMD ["sh", "-c", "npm run migrate && npm run seed && npm start"]
-CMD ["sh", "-c", "npm run migrate && npm start"]
+CMD ["sh", "-c", "npm run migrate && npm run seed && npm start"]
