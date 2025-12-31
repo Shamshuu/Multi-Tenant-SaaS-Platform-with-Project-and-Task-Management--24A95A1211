@@ -6,8 +6,8 @@ services:
     container_name: database
     environment:
       POSTGRES_DB: saas_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 1234
+      POSTGRES_USER: USERNAME
+      POSTGRES_PASSWORD: PASSWORD
     ports:
       - "5436:5432"
     volumes:
@@ -26,9 +26,9 @@ services:
     environment:
       DB_HOST: database
       DB_PORT: 5432
-      DB_NAME: saas_db
-      DB_USER: postgres
-      DB_PASSWORD: 1234
+      DB_NAME: NAME
+      DB_USER: USERNAME
+      DB_PASSWORD: PASSWORD
       JWT_SECRET: dev_secret_key_please_change
       JWT_EXPIRES_IN: 24h
       FRONTEND_URL: http://frontend:3000
