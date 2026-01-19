@@ -1,5 +1,6 @@
 const pool = require('../config/db');
 const crypto = require('crypto');
+const auditService = require('../services/audit.service');
 
 exports.createTask = async (req, res) => {
   const { projectId } = req.params;
@@ -59,6 +60,13 @@ exports.createTask = async (req, res) => {
       `,
       [taskId, projectId, projectTenantId, title, description, priority, assignedTo || null, dueDate || null]
     );
+
+    // Log task creation
+    await auditService.logTaskCreated(projectTenantId, req.user.userId, taskId, {
+      title,
+      projectId,
+      priority
+    });
 
     return res.status(201).json({
       success: true,
@@ -213,6 +221,12 @@ exports.updateTaskStatus = async (req, res) => {
       [status, taskId]
     );
 
+    // Log task status update
+    await auditService.logTaskUpdated(taskRes.rows[0].tenant_id, req.user.userId, taskId, {
+      action: 'status_change',
+      newStatus: status
+    });
+
     return res.status(200).json({
       success: true,
       data: result.rows[0],
@@ -310,10 +324,64 @@ exports.updateTask = async (req, res) => {
 
     const result = await pool.query(query, values);
 
+    // Log task update
+    await auditService.logTaskUpdated(taskRes.rows[0].tenant_id, req.user.userId, taskId, {
+      title,
+      status,
+      priority,
+      assignedTo
+    });
+
     return res.status(200).json({
       success: true,
       message: 'Task updated successfully',
       data: result.rows[0],
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
+exports.deleteTask = async (req, res) => {
+  const { taskId } = req.params;
+  const { tenantId } = req.user;
+
+  try {
+    const taskRes = await pool.query(
+      'SELECT * FROM tasks WHERE id = $1',
+      [taskId]
+    );
+
+    if (taskRes.rowCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Task not found',
+      });
+    }
+
+    const task = taskRes.rows[0];
+
+    if (task.tenant_id !== tenantId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Unauthorized task access',
+      });
+    }
+
+    await pool.query('DELETE FROM tasks WHERE id = $1', [taskId]);
+
+    // Log task deletion
+    await auditService.logTaskDeleted(task.tenant_id, req.user.userId, taskId, {
+      taskTitle: task.title
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Task deleted successfully',
     });
   } catch (err) {
     console.error(err);
