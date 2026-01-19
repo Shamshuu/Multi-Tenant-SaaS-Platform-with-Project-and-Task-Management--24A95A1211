@@ -12,6 +12,9 @@ COPY . .
 # Expose backend port
 EXPOSE 5000
 
+# Health check
+HEALTHCHECK --interval=10s --timeout=5s --retries=5 \
+  CMD node -e "require('http').get('http://localhost:5000/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))" || exit 1
+
 # Run migrations + seeds, then start server
-# CMD ["sh", "-c", "npm run migrate && npm run seed && npm start"]
-CMD ["sh", "-c", "npm run migrate && npm start"]
+CMD ["sh", "-c", "sleep 5 && npm run migrate && npm run seed && npm start"]
