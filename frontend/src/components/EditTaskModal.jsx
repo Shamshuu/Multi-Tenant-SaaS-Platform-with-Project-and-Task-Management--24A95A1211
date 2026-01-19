@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '../services/api';
+import { toast } from 'react-toastify';
 
 const EditTaskModal = ({ task, onClose, onUpdated }) => {
   const [title, setTitle] = useState(task.title);
@@ -19,10 +20,13 @@ const EditTaskModal = ({ task, onClose, onUpdated }) => {
         status,
         priority,
       });
+      toast.success('Task updated successfully');
       onUpdated();
       onClose();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update task');
+      const errorMsg = err.response?.data?.message || 'Failed to update task';
+      setError(errorMsg);
+      toast.error(errorMsg);
     }
   };
 
