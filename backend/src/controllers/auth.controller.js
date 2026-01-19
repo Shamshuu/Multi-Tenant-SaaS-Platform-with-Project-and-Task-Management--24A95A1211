@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const pool = require('../config/db');
 const { generateToken } = require('../utils/jwt');
+const auditService = require('../services/audit.service');
 
 const SALT_ROUNDS = 10;
 
@@ -103,7 +104,7 @@ exports.login = async (req, res) => {
   }
 
   // Treat empty string as undefined for tenantSubdomain
-  const normalizedTenantSubdomain = tenantSubdomain;/// == undefined ? undefined : tenantSubdomain;
+  const normalizedTenantSubdomain = tenantSubdomain;
   console.log("Normalized Tenant Subdomain:", normalizedTenantSubdomain);
   try {
     // 1️⃣ FIRST: check if user is super_admin (tenant_id IS NULL)
@@ -216,6 +217,12 @@ exports.login = async (req, res) => {
       userId: user.id,
       tenantId: user.tenant_id,
       role: user.role,
+    });
+
+    // Log successful login
+    await auditService.logLogin(user.tenant_id, user.id, { 
+      email: user.email,
+      role: user.role 
     });
 
     return res.status(200).json({
