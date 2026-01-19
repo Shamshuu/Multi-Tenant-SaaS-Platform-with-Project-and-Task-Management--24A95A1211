@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '../services/api';
+import { toast } from 'react-toastify';
 
 const CreateProjectModal = ({ onClose, onCreated }) => {
   const [name, setName] = useState('');
@@ -12,10 +13,13 @@ const CreateProjectModal = ({ onClose, onCreated }) => {
 
     try {
       await api.post('/projects', { name, description });
+      toast.success('Project created successfully');
       onCreated();
       onClose();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create project');
+      const errorMsg = err.response?.data?.message || 'Failed to create project';
+      setError(errorMsg);
+      toast.error(errorMsg);
     }
   };
 
