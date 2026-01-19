@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '../services/api';
+import { toast } from 'react-toastify';
 
 const EditProjectModal = ({ project, onClose, onUpdated }) => {
   const [name, setName] = useState(project.name);
@@ -17,10 +18,13 @@ const EditProjectModal = ({ project, onClose, onUpdated }) => {
         description,
         status,
       });
+      toast.success('Project updated successfully');
       onUpdated();
       onClose();
     } catch (err) {
-      setError(err.response?.data?.message || 'Update failed');
+      const errorMsg = err.response?.data?.message || 'Update failed';
+      setError(errorMsg);
+      toast.error(errorMsg);
     }
   };
 
