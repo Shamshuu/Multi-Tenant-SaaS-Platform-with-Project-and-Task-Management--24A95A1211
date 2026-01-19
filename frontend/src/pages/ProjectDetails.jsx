@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
   Paper,
@@ -17,17 +17,16 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
 import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { toast } from 'react-toastify';
 
 import api from '../services/api';
 import CreateTaskModal from '../components/CreateTaskModal';
 import EditTaskModal from '../components/EditTaskModal';
 
 const ProjectDetails = () => {
-  const { projectId } = useParams(); // ✅ make sure route is /projects/:projectId
+  const { projectId } = useParams();
   const navigate = useNavigate();
 
   const [project, setProject] = useState(null);
@@ -53,6 +52,7 @@ const ProjectDetails = () => {
     } catch (err) {
       console.error(err);
       setError('Failed to load project');
+      toast.error('Failed to load project details');
     } finally {
       setLoading(false);
     }
@@ -62,6 +62,20 @@ const ProjectDetails = () => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
+
+  const handleDeleteProject = async () => {
+    setDeleting(true);
+    try {
+      await api.delete(`/projects/${projectId}`);
+      toast.success('Project deleted successfully');
+      setDeleteDialogOpen(false);
+      navigate('/projects');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete project');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   /* ---------------- LOADING / ERROR GUARDS ---------------- */
 
@@ -82,11 +96,10 @@ const ProjectDetails = () => {
   }
 
   if (!project) {
-    return null; // safety fallback
+    return null;
   }
 
   /* ---------------- MAIN RENDER ---------------- */
-  console.log('ArrowBackIcon type:', typeof ArrowBackIcon);
 
   return (
     <Box
@@ -113,10 +126,11 @@ const ProjectDetails = () => {
             Delete Project
           </Button>
         </Box>
+
         {/* Delete Confirmation Dialog */}
         <Dialog
           open={deleteDialogOpen}
-          onClose={() => setDeleteDialogOpen(false)}
+          onClose={() => !deleting && setDeleteDialogOpen(false)}
         >
           <DialogTitle>Delete Project</DialogTitle>
           <DialogContent>
@@ -125,20 +139,11 @@ const ProjectDetails = () => {
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setDeleteDialogOpen(false)} disabled={deleting}>Cancel</Button>
+            <Button onClick={() => setDeleteDialogOpen(false)} disabled={deleting}>
+              Cancel
+            </Button>
             <Button
-              onClick={async () => {
-                setDeleting(true);
-                try {
-                  await api.delete(`/projects/${projectId}`);
-                  setDeleteDialogOpen(false);
-                  navigate('/projects');
-                } catch (err) {
-                  alert('Failed to delete project');
-                } finally {
-                  setDeleting(false);
-                }
-              }}
+              onClick={handleDeleteProject}
               color="error"
               disabled={deleting}
             >
@@ -214,20 +219,21 @@ const ProjectDetails = () => {
                           await api.patch(`/tasks/${task.id}/status`, {
                             status: nextStatus,
                           });
+                          toast.success('Task status updated');
                           fetchData();
                         } catch (err) {
-                          alert('Failed to update task status');
+                          toast.error(err.response?.data?.message || 'Failed to update task status');
                         }
                       }}
                     >
-                      {/* <AutorenewIcon /> */}
+                      <AutorenewIcon />
                     </IconButton>
                     <IconButton
                       edge="end"
                       aria-label="edit"
                       onClick={() => setEditTask(task)}
                     >
-                      {/* <EditIcon /> */}
+                      <EditIcon />
                     </IconButton>
                   </>
                 }
