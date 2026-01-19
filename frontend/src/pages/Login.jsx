@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Box, Button, TextField, Typography, Paper, Alert } from '@mui/material';
+import { toast } from 'react-toastify';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -18,18 +19,25 @@ const Login = () => {
         e.preventDefault();
         setError('');
         if (!email || !password) {
-            setError('Email and password are required');
+            const errorMsg = 'Email and password are required';
+            setError(errorMsg);
+            toast.error(errorMsg);
             return;
         }
         if (!isSuperAdmin && !tenantSubdomain) {
-            setError('Tenant subdomain is required');
+            const errorMsg = 'Tenant subdomain is required';
+            setError(errorMsg);
+            toast.error(errorMsg);
             return;
         }
         try {
             await login(email, password, isSuperAdmin ? undefined : tenantSubdomain);
+            toast.success('Login successful!');
             navigate('/dashboard');
         } catch (err) {
-            setError(err.response?.data?.message || 'Login failed');
+            const errorMsg = err.response?.data?.message || 'Login failed';
+            setError(errorMsg);
+            toast.error(errorMsg);
         }
     };
 
