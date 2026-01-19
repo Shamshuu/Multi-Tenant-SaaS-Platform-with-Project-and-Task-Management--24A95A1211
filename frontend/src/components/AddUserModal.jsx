@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '../services/api';
+import { toast } from 'react-toastify';
 
 const AddUserModal = ({ tenantId, onClose, onCreated }) => {
   const [email, setEmail] = useState('');
@@ -19,10 +20,13 @@ const AddUserModal = ({ tenantId, onClose, onCreated }) => {
         password,
         role,
       });
+      toast.success('User created successfully');
       onCreated();
       onClose();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to add user');
+      const errorMsg = err.response?.data?.message || 'Failed to add user';
+      setError(errorMsg);
+      toast.error(errorMsg);
     }
   };
 
