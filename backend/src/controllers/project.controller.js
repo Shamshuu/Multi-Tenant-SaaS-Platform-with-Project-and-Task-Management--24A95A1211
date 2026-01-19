@@ -1,5 +1,6 @@
 const pool = require('../config/db');
 const crypto = require('crypto');
+const auditService = require('../services/audit.service');
 
 exports.createProject = async (req, res) => {
   const { name, description, status = 'active' } = req.body;
@@ -43,6 +44,12 @@ exports.createProject = async (req, res) => {
       `,
       [projectId, tenantId, name, description, status, userId]
     );
+
+    // Log project creation
+    await auditService.logProjectCreated(tenantId, userId, projectId, { 
+      name, 
+      status 
+    });
 
     return res.status(201).json({
       success: true,
@@ -186,6 +193,13 @@ exports.updateProject = async (req, res) => {
 
     const result = await pool.query(query, values);
 
+    // Log project update
+    await auditService.logProjectUpdated(project.tenant_id, req.user.userId, projectId, { 
+      name, 
+      description, 
+      status 
+    });
+
     return res.status(200).json({
       success: true,
       message: 'Project updated successfully',
@@ -230,6 +244,11 @@ exports.deleteProject = async (req, res) => {
     }
 
     await pool.query('DELETE FROM projects WHERE id = $1', [projectId]);
+
+    // Log project deletion
+    await auditService.logProjectDeleted(project.tenant_id, req.user.userId, projectId, { 
+      projectName: project.name 
+    });
 
     return res.status(200).json({
       success: true,
