@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const auditService = require('../services/audit.service');
 
 exports.getTenantById = async (req, res) => {
   const { tenantId } = req.params;
@@ -135,6 +136,13 @@ exports.updateTenant = async (req, res) => {
         message: 'Tenant not found',
       });
     }
+
+    // Log tenant update
+    await auditService.logTenantUpdated(tenantId, req.user.userId, { 
+      name, 
+      status, 
+      subscriptionPlan 
+    });
 
     return res.status(200).json({
       success: true,
