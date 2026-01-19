@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '../services/api';
+import { toast } from 'react-toastify';
 
 const EditUserModal = ({ user, onClose, onUpdated }) => {
   const [fullName, setFullName] = useState(user.fullName);
@@ -17,10 +18,13 @@ const EditUserModal = ({ user, onClose, onUpdated }) => {
         role,
         isActive,
       });
+      toast.success('User updated successfully');
       onUpdated();
       onClose();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update user');
+      const errorMsg = err.response?.data?.message || 'Failed to update user';
+      setError(errorMsg);
+      toast.error(errorMsg);
     }
   };
 
