@@ -2,6 +2,7 @@ import { useState } from 'react';
 import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { Box, Button, TextField, Typography, Paper, Alert } from '@mui/material';
+import { toast } from 'react-toastify';
 
 const Register = () => {
   const [form, setForm] = useState({
@@ -27,7 +28,9 @@ const Register = () => {
     setSuccess('');
 
     if (form.password !== form.confirmPassword) {
-      setError('Passwords do not match');
+      const errorMsg = 'Passwords do not match';
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
@@ -40,10 +43,14 @@ const Register = () => {
         adminFullName: form.adminFullName,
       });
 
-      setSuccess('Registration successful. Please login.');
+      const successMsg = 'Registration successful. Please login.';
+      setSuccess(successMsg);
+      toast.success(successMsg);
       setTimeout(() => navigate('/login'), 1500);
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed');
+      const errorMsg = err.response?.data?.message || 'Registration failed';
+      setError(errorMsg);
+      toast.error(errorMsg);
     }
   };
 
