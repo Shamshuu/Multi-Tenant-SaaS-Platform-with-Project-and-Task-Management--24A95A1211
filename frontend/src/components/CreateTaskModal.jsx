@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '../services/api';
+import { toast } from 'react-toastify';
 
 const CreateTaskModal = ({ projectId, onClose, onCreated }) => {
   const [title, setTitle] = useState('');
@@ -17,10 +18,13 @@ const CreateTaskModal = ({ projectId, onClose, onCreated }) => {
         description,
         priority,
       });
+      toast.success('Task created successfully');
       onCreated();
       onClose();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create task');
+      const errorMsg = err.response?.data?.message || 'Failed to create task';
+      setError(errorMsg);
+      toast.error(errorMsg);
     }
   };
 
