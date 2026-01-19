@@ -26,6 +26,9 @@ app.use(cors({
 
 app.use(express.json());
 
+const healthRoutes = require('./routes/health.routes');
+app.use('/api', healthRoutes);
+
 const authRoutes = require('./routes/auth.routes');
 app.use('/api/auth', authRoutes);
 
