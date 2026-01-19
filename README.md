@@ -427,19 +427,3 @@ docker-compose ps
 # Test health check
 curl http://your-domain.com/api/health
 ```
-
-## 📝 License
-
-This project is licensed under the MIT License.
-
-## 👥 Contributors
-
-- Development Team
-
-## 📧 Support
-
-For issues or questions, please create an issue in the repository.
-
----
-
-**Made with ❤️ using Node.js, React, PostgreSQL, and Docker**
