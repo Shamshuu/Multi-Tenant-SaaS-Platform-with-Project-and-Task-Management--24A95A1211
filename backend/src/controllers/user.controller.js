@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const pool = require('../config/db');
 const crypto = require('crypto');
+const auditService = require('../services/audit.service');
 
 const SALT_ROUNDS = 10;
 
@@ -68,6 +69,12 @@ exports.createUser = async (req, res) => {
       `,
       [userId, tenantId, email, passwordHash, fullName, role]
     );
+
+    // Log user creation
+    await auditService.logUserCreated(tenantId, req.user.userId, userId, { 
+      email, 
+      role 
+    });
 
     return res.status(201).json({
       success: true,
@@ -227,6 +234,13 @@ exports.updateUser = async (req, res) => {
 
     const result = await pool.query(query, values);
 
+    // Log user update
+    await auditService.logUserUpdated(targetUser.tenant_id, req.user.userId, userId, { 
+      fullName, 
+      role, 
+      isActive 
+    });
+
     return res.status(200).json({
       success: true,
       message: 'User updated successfully',
@@ -277,6 +291,11 @@ exports.deleteUser = async (req, res) => {
     );
 
     await pool.query('DELETE FROM users WHERE id = $1', [userId]);
+
+    // Log user deletion
+    await auditService.logUserDeleted(req.user.tenantId, req.user.userId, userId, { 
+      deletedBy: req.user.userId 
+    });
 
     return res.status(200).json({
       success: true,
