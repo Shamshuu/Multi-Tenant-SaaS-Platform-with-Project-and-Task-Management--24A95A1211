@@ -164,8 +164,8 @@ project-root/
 
 1. **Clone the repository**
 ```bash
-git clone <repository-url>
-cd Multi-Tenant-SaaS-Platform
+git clone https://github.com/Shamshuu/Multi-Tenant-SaaS-Platform-with-Project-and-Task-Management--24A95A1211
+cd Multi-Tenant-SaaS-Platform-with-Project-and-Task-Management--24A95A1211
 ```
 
 2. **Start all services**
