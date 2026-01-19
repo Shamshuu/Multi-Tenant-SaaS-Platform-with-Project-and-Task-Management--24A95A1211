@@ -13,7 +13,13 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from '@mui/material';
+import { toast } from 'react-toastify';
 import AddUserModal from '../components/AddUserModal';
 import EditUserModal from '../components/EditUserModal';
 
@@ -26,6 +32,8 @@ const Users = () => {
   const [error, setError] = useState('');
   const [showAdd, setShowAdd] = useState(false);
   const [editUser, setEditUser] = useState(null);
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, user: null });
+  const [deleting, setDeleting] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -40,8 +48,25 @@ const Users = () => {
       setUsers(res.data.data.users || []);
     } catch (err) {
       setError('Unable to load users');
+      toast.error('Failed to load users');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!deleteDialog.user) return;
+    
+    setDeleting(true);
+    try {
+      await api.delete(`/users/${deleteDialog.user.id}`);
+      toast.success('User deleted successfully');
+      setDeleteDialog({ open: false, user: null });
+      fetchUsers();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete user');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -157,6 +182,16 @@ const Users = () => {
                         >
                           Edit
                         </Button>
+                        {role === 'tenant_admin' && user.id !== currentUserId && (
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="error"
+                            onClick={() => setDeleteDialog({ open: true, user })}
+                          >
+                            Delete
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))
@@ -165,6 +200,27 @@ const Users = () => {
             </Table>
           </TableContainer>
         )}
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={deleteDialog.open}
+          onClose={() => !deleting && setDeleteDialog({ open: false, user: null })}
+        >
+          <DialogTitle>Delete User</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to delete {deleteDialog.user?.fullName}? This action cannot be undone.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDeleteDialog({ open: false, user: null })} disabled={deleting}>
+              Cancel
+            </Button>
+            <Button onClick={handleDeleteUser} color="error" disabled={deleting}>
+              {deleting ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Paper>
     </Box>
   );
