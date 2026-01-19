@@ -1,6 +1,25 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
-import { Box, Typography, Paper, Button, CircularProgress, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { 
+    Box, 
+    Typography, 
+    Paper, 
+    Button, 
+    CircularProgress, 
+    Alert, 
+    Table, 
+    TableBody, 
+    TableCell, 
+    TableContainer, 
+    TableHead, 
+    TableRow,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+} from '@mui/material';
+import { toast } from 'react-toastify';
 import CreateProjectModal from '../components/CreateProjectModal';
 import EditProjectModal from '../components/EditProjectModal';
 
@@ -10,6 +29,8 @@ const Projects = () => {
     const [error, setError] = useState('');
     const [showCreate, setShowCreate] = useState(false);
     const [editProject, setEditProject] = useState(null);
+    const [deleteDialog, setDeleteDialog] = useState({ open: false, project: null });
+    const [deleting, setDeleting] = useState(false);
 
     const fetchProjects = async () => {
         try {
@@ -17,8 +38,25 @@ const Projects = () => {
             setProjects(res.data?.data?.projects || []);
         } catch (err) {
             setError('Unable to load projects');
+            toast.error('Failed to load projects');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDeleteProject = async () => {
+        if (!deleteDialog.project) return;
+        
+        setDeleting(true);
+        try {
+            await api.delete(`/projects/${deleteDialog.project.id}`);
+            toast.success('Project deleted successfully');
+            setDeleteDialog({ open: false, project: null });
+            fetchProjects();
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to delete project');
+        } finally {
+            setDeleting(false);
         }
     };
 
@@ -82,7 +120,15 @@ const Projects = () => {
                                                 <Button size="small" variant="outlined" sx={{ mr: 1 }} onClick={() => setEditProject(project)}>
                                                     Edit
                                                 </Button>
-                                                <Button size="small" variant="text" href={`/projects/${project.id}`}>View</Button>
+                                                <Button size="small" variant="text" href={`/projects/${project.id}`} sx={{ mr: 1 }}>View</Button>
+                                                <Button 
+                                                    size="small" 
+                                                    variant="outlined" 
+                                                    color="error"
+                                                    onClick={() => setDeleteDialog({ open: true, project })}
+                                                >
+                                                    Delete
+                                                </Button>
                                             </TableCell>
                                         </TableRow>
                                     ))
@@ -91,6 +137,27 @@ const Projects = () => {
                         </Table>
                     </TableContainer>
                 )}
+
+                {/* Delete Confirmation Dialog */}
+                <Dialog
+                    open={deleteDialog.open}
+                    onClose={() => !deleting && setDeleteDialog({ open: false, project: null })}
+                >
+                    <DialogTitle>Delete Project</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText>
+                            Are you sure you want to delete "{deleteDialog.project?.name}"? This will also delete all tasks in this project. This action cannot be undone.
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setDeleteDialog({ open: false, project: null })} disabled={deleting}>
+                            Cancel
+                        </Button>
+                        <Button onClick={handleDeleteProject} color="error" disabled={deleting}>
+                            {deleting ? 'Deleting...' : 'Delete'}
+                        </Button>
+                    </DialogActions>
+                </Dialog>
             </Paper>
         </Box>
     );
